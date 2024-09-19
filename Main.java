@@ -6,6 +6,9 @@ class Main {
         final double kinematic_velocity_of_air = 0;
         final double cross_section_spoked_wheel = 0;
         final double cross_section_disc_wheel = 0;
+        final double drag_coeff_spoked_wheel = 0;
+        final double drag_coeff_disc_wheel = 0;
+        final double drag_coeff_rider_bike = 0;
         final double radius = 0;
     }
 
@@ -18,6 +21,7 @@ class Main {
         int power;
         boolean rear_disc;
         double cross_section_rear_wheel;
+        double drag_coeff_rear_wheel;
     }
 
     protected class Var_Per_Instance {
@@ -36,19 +40,21 @@ class Main {
 
     }
 
-    public init() {
+    public void init() {
         if (const_per_course.rear_disc) {
             const_per_course.cross_section_rear_wheel = constants.cross_section_disc_wheel;
+            const_per_course.drag_coeff_rear_wheel = constants.drag_coeff_disc_wheel;
         } else {
             const_per_course.cross_section_rear_wheel = constants.cross_section_spoked_wheel;
+            const_per_course.drag_coeff_rear_wheel = constants.drag_coeff_spoked_wheel;
         }
     }
 
     private double findSpeedForInstance(Var_Per_Instance instance, double start_speed) {
         double F_g = gravitationalResistance(const_per_course.mass_bike_and_rider, constants.gravity, instance.grade);
         double rotational_velocity = start_speed / constants.radius;
-        double Tau_wa = frictionInAirOnWheels(const_per_course.air_density, rotational_velocity, F_g, start_speed);
-
+        double F_wa = frictionInAirOnWheels(const_per_course.air_density, rotational_velocity, F_g, start_speed)/constants.radius;
+        double F_drb = dragOnBikeExceptWheels(const_per_course.air_density, constants.drag_coeff_rider_bike, const_per_course.cross_section_rider_and_bike, const_per_course.wind_speed, const_per_course.wind_speed, start_speed, const_per_course.wind_direction);
         return 0;
     }
 
