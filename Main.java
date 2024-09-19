@@ -47,8 +47,8 @@ class Main {
         return 0.5 * c_f * A_f * v_wb * v_wb;
     }
 
-    private void dragOnBackWheel() {
-
+    private double dragOnBackWheel(double c_r, double A_r, double rho, double v_wb) {
+        return 0.5 * 0.75 * rho * c_r * A_r * v_wb;
     }
 
     private void gravitationalResistance() {
