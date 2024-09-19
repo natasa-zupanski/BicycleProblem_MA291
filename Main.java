@@ -43,8 +43,8 @@ class Main {
                                 (v_wg * Math.sin(gamma)) / (v_bg - v_wg * Math.cos(gamma))));
     }
 
-    private void dragOnFrontWheel() {
-
+    private double dragOnFrontWheel(double c_f, double A_f, double rho, double v_wb) {
+        return 0.5 * c_f * A_f * v_wb * v_wb;
     }
 
     private void dragOnBackWheel() {
