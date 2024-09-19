@@ -1,22 +1,23 @@
 
 class Main {
 
-    protected static class Constants {
+    protected class Constants {
         final double gravity = 9.81;
         final double kinematic_velocity_of_air = 0;
         final double cross_section_spoked_wheel = 0;
         final double cross_section_disc_wheel = 0;
-        final double radius_spoked_wheel = 0;
-        final double radius_disc_wheel = 0;
+        final double radius = 0;
     }
 
     protected class Constant_Per_Course {
         double wind_speed;
         double wind_direction;
-        double air_direction;
+        double air_density;
         double mass_bike_and_rider;
         double cross_section_rider_and_bike;
         int power;
+        boolean rear_disc;
+        double cross_section_rear_wheel;
     }
 
     protected class Var_Per_Instance {
@@ -24,15 +25,31 @@ class Main {
         double bike_direction;
     }
 
-    protected class Inputs {
-        double step_length;
-        double number_steps;
-        Var_Per_Instance[] situations;
-        Constant_Per_Course course_specs;
-    }
+    Constants constants = new Constants();
+    Constant_Per_Course const_per_course = new Constant_Per_Course();
+    Var_Per_Instance[] situations;
+
+    double step_length;
+    double number_steps;
 
     public static void main(String[] args) {
 
+    }
+
+    public init() {
+        if (const_per_course.rear_disc) {
+            const_per_course.cross_section_rear_wheel = constants.cross_section_disc_wheel;
+        } else {
+            const_per_course.cross_section_rear_wheel = constants.cross_section_spoked_wheel;
+        }
+    }
+
+    private double findSpeedForInstance(Var_Per_Instance instance, double start_speed) {
+        double F_g = gravitationalResistance(const_per_course.mass_bike_and_rider, constants.gravity, instance.grade);
+        double rotational_velocity = start_speed / constants.radius;
+        double Tau_wa = frictionInAirOnWheels(const_per_course.air_density, rotational_velocity, F_g, start_speed);
+
+        return 0;
     }
 
     private double dragOnBikeExceptWheels(double rho, double c_rb, double A, double v_wb, double v_wg, double v_bg,
