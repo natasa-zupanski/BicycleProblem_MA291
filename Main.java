@@ -35,8 +35,12 @@ class Main {
 
     }
 
-    private void dragOnBikeExceptWheels() {
-
+    private double dragOnBikeExceptWheels(double rho, double c_rb, double A, double v_wb, double v_wg, double v_bg,
+            double gamma) {
+        return 0.5 * rho * c_rb * A * v_wb
+                * Math.cos(
+                        Math.atan(
+                                (v_wg * Math.sin(gamma)) / (v_bg - v_wg * Math.cos(gamma))));
     }
 
     private void dragOnFrontWheel() {
