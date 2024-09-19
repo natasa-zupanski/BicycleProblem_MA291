@@ -51,16 +51,20 @@ class Main {
         return 0.5 * 0.75 * rho * c_r * A_r * v_wb;
     }
 
-    private void gravitationalResistance() {
-
+    private double gravitationalResistance(double m, double g, double psi) {
+        return m * g * psi;
     }
 
-    private void rollingResistance() {
-
+    private double rollingResistance(double c_rr, double m, double g, double psi, double v_bg) {
+        if (v_bg == 0) {
+            return 0;
+        } else {
+            return c_rr * m * g * Math.sqrt(1 - psi * psi);
+        }
     }
 
-    private void frictionInAirOnWheels() {
-
+    private double frictionInAirOnWheels(double rho, double omega, double mu, double r) {
+        return 0.616 * Math.PI * Math.pow(rho, 1.5) * Math.pow(mu, 0.5) * Math.pow(r, 4);
     }
 
 }
