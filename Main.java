@@ -24,7 +24,7 @@ class Main {
         double bike_direction;
     }
 
-    private class Inputs_Calculation {
+    private class Inputs {
         double step_length;
         double number_steps;
         Var_Per_Instance[] situations;
