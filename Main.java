@@ -1,7 +1,7 @@
 
 class Main {
 
-    private final class Constants {
+    protected static class Constants {
         final double gravity = 9.81;
         final double kinematic_velocity_of_air = 0;
         final double cross_section_spoked_wheel = 0;
@@ -10,7 +10,7 @@ class Main {
         final double radius_disc_wheel = 0;
     }
 
-    private class Constant_Per_Course {
+    protected class Constant_Per_Course {
         double wind_speed;
         double wind_direction;
         double air_direction;
@@ -19,12 +19,12 @@ class Main {
         int power;
     }
 
-    private class Var_Per_Instance {
+    protected class Var_Per_Instance {
         double grade;
         double bike_direction;
     }
 
-    private class Inputs {
+    protected class Inputs {
         double step_length;
         double number_steps;
         Var_Per_Instance[] situations;
