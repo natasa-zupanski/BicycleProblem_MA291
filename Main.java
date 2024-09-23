@@ -1,8 +1,14 @@
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Scanner;
 
 class Main {
 
     protected class Constants {
         final double gravity = 9.81;
+        final double earth_radius = 6378137;
         final double kinematic_velocity_of_air = 0;
         final double cross_section_spoked_wheel = 0;
         final double cross_section_disc_wheel = 0;
@@ -48,7 +54,13 @@ class Main {
     double step_length;
     double number_steps;
 
+    ArrayList<Double> distances;
+    ArrayList<Double> grades;
+    ArrayList<Double> angles;
+
+
     public static void main(String[] args) {
+
 
     }
 
@@ -75,6 +87,47 @@ class Main {
             const_per_course.drag_coeff_front_wheel = constants.drag_coeff_spoked_wheel;
             const_per_course.mass_front_wheel = constants.mass_spoked_wheel;
             const_per_course.moi_front = constants.moi_spoked;
+        }
+    }
+
+    private double findTimeForCourse(double start_dist, double start_speed){
+        return 0;
+    }
+
+    private void parseCourse(String fname){
+        try{
+            int i = 0;
+            double prev_lat = 0;
+            double prev_lon = 0;
+            double prev_elev = 0;
+            boolean first = true;
+            Scanner reader = new Scanner(new FileInputStream(new File(fname)));
+            distances.add((Double) 0.0);
+            while(reader.hasNextLine()){
+                String ln = reader.nextLine();
+                if(ln.contains("trkpt")){
+                    double lat = Double.parseDouble(ln.split("\"")[1]);
+                    double lon = Double.parseDouble(ln.split("\"")[3]);
+                    String el = reader.nextLine();
+                    double elev = Double.parseDouble(el.substring(el.indexOf(">"), el.lastIndexOf("<")));
+                    if(!first){
+                        double elev_change = elev-prev_elev;
+                        double d = 2*constants.earth_radius*Math.asin(Math.sqrt(Math.pow(Math.sin((lat-prev_lat)/2), 2) + Math.cos(prev_lat)*Math.cos(lat)*Math.pow(Math.sin((lon - prev_lon)/2), 2)));
+                        double dt = d/Math.cos(Math.atan(elev_change/d));
+                        distances.add(dt);
+                        double bearing = (Math.atan2(Math.sin(lon - prev_lon)*Math.cos(lat), Math.cos(prev_lat)*Math.sin(lat)-Math.sin(prev_lat)*Math.cos(lat)*Math.cos(lon - prev_lon))*180/Math.PI + 360) % 360;
+                        angles.add(bearing);
+                        grades.add(elev_change/d);
+                    }
+                    prev_elev = elev;
+                    prev_lat = lat;
+                    prev_lon = lon;
+                    first = false;
+                }
+            }
+            reader.close();
+        } catch(FileNotFoundException e){
+            System.out.println("Problem reading file " + fname);
         }
     }
 
