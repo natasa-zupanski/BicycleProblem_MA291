@@ -9,16 +9,16 @@ class Main {
     protected class Constants {
         final double gravity = 9.81;
         final double earth_radius = 6378137;
-        final double kinematic_velocity_of_air = 0;
-        final double cross_section_spoked_wheel = 0;
-        final double cross_section_disc_wheel = 0;
+        final double kinematic_velocity_of_air = 0.000015672;
+        final double cross_section_spoked_wheel = 0.0226852;
+        final double cross_section_disc_wheel = 0.0226852;
         final double drag_coeff_spoked_wheel = 0;
         final double drag_coeff_disc_wheel = 0;
         final double drag_coeff_rider_bike = 0;
         final double mass_spoked_wheel = 0;
         final double mass_disk_wheel = 0;
-        final double radius = 0;
-        final double coeff_roll_rest = 0;
+        final double radius = 0.3302;
+        final double coeff_roll_rest = 0.004;
         final double moi_disk = 0;
         final double moi_spoked = 0;
     }
@@ -60,16 +60,46 @@ class Main {
 
 
     public static void main(String[] args) {
-        Main runner = new Main(true);
-        runner.findTimeForCourse(0, 0, 0);
+        Main runner = new Main(false, false);
+        Scanner scan = new Scanner(System.in);
+        System.out.println("Enter wind speed (m/s):");
+        runner.const_per_course.wind_speed = scan.nextDouble();
+        System.out.println("Enter wind direction (rad):");
+        runner.const_per_course.wind_direction = scan.nextDouble();
+        System.out.println("Enter air density:");
+        runner.const_per_course.air_density = scan.nextDouble();
+        System.out.println("Enter bike and rider mass (kg):");
+        runner.const_per_course.mass_bike_and_rider = scan.nextDouble();
+        System.out.println("Enter bike and rider cross section (m^2):");
+        runner.const_per_course.cross_section_rider_and_bike = scan.nextDouble();
+        System.out.println("Enter course file name:");
+        String fname = scan.next();
+        runner.parseCourse(fname);
+        scan.close();
+        double time_both_spoked = runner.findTimeForCourse(0, 0, 0);
+        runner.const_per_course.rear_disc = true;
+        runner.init();
+        double time_rear_disk = runner.findTimeForCourse(0, 0, 0);
+        runner.const_per_course.front_disc = true;
+        runner.init();
+        double time_both_disk = runner.findTimeForCourse(0, 0, 0);
+
+        System.out.println("Time 2 spoked: " + time_both_spoked + "s");
+        System.out.println("Time rear disk: " + time_rear_disk + "s");
+        System.out.println("Time 2 disk: " + time_both_disk + "s");        
     }
 
-    public Main(boolean disk){
-        this.const_per_course.rear_disc = disk;
+    public Main(boolean rear_disk, boolean front_disk){
+        this.const_per_course.rear_disc = rear_disk;
+        this.const_per_course.front_disc = front_disk;
+        this.distances = new ArrayList<>();
+        this.angles = new ArrayList<>();
+        this.grades = new ArrayList<>();
         this.init();
     }
 
     public void init() {
+        const_per_course.power = 440;
         if (const_per_course.rear_disc) {
             const_per_course.cross_section_rear_wheel = constants.cross_section_disc_wheel;
             const_per_course.drag_coeff_rear_wheel = constants.drag_coeff_disc_wheel;
@@ -129,7 +159,7 @@ class Main {
         return 0;
     }
 
-    private void parseCourse(String fname){
+    public void parseCourse(String fname){
         try{
             int i = 0;
             double prev_lat = 0;
@@ -147,11 +177,12 @@ class Main {
                     double elev = Double.parseDouble(el.substring(el.indexOf(">"), el.lastIndexOf("<")));
                     if(!first){
                         double elev_change = elev-prev_elev;
-                        double d = 2*constants.earth_radius*Math.asin(Math.sqrt(Math.pow(Math.sin((lat-prev_lat)/2), 2) + Math.cos(prev_lat)*Math.cos(lat)*Math.pow(Math.sin((lon - prev_lon)/2), 2)));
+                        double d = 2*constants.earth_radius*Math.asin(Math.sqrt(Math.pow(Math.sin((lat-prev_lat)/2), 2) + 
+                                                                                         Math.cos(prev_lat)*Math.cos(lat)*Math.pow(Math.sin((lon - prev_lon)/2), 2)));
                         double dt = d/Math.cos(Math.atan(elev_change/d));
                         distances.add(dt + distances.get(i));
                         i++;
-                        double bearing = (Math.atan2(Math.sin(lon - prev_lon)*Math.cos(lat), Math.cos(prev_lat)*Math.sin(lat)-Math.sin(prev_lat)*Math.cos(lat)*Math.cos(lon - prev_lon))*180/Math.PI + 360) % 360;
+                        double bearing = Math.PI/180*(Math.atan2(Math.sin(lon - prev_lon)*Math.cos(lat), Math.cos(prev_lat)*Math.sin(lat)-Math.sin(prev_lat)*Math.cos(lat)*Math.cos(lon - prev_lon))*180/Math.PI + 360) % 360;
                         angles.add(bearing);
                         grades.add(elev_change/d);
                     }
