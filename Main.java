@@ -60,8 +60,13 @@ class Main {
 
 
     public static void main(String[] args) {
+        Main runner = new Main(true);
+        runner.findTimeForCourse(0, 0, 0);
+    }
 
-
+    public Main(boolean disk){
+        this.const_per_course.rear_disc = disk;
+        this.init();
     }
 
     public void init() {
@@ -90,7 +95,37 @@ class Main {
         }
     }
 
-    private double findTimeForCourse(double start_dist, double start_speed){
+    private double findTimeForCourse(double start_dist, double start_speed, double num_steps){
+        if(pastCourse(start_dist)){
+            return num_steps*step_length;
+        }
+        Var_Per_Instance situation = new Var_Per_Instance();
+        situation.bike_direction = getBearing(start_dist);
+        situation.grade = getGrade(start_dist);
+        double speed = findSpeedForInstance(situation, start_speed);
+        double dist = start_dist + speed*step_length;
+        return findTimeForCourse(dist, speed, num_steps + 1);
+    }
+
+    private boolean pastCourse(double distance){
+        return distance > distances.get(distances.size() - 1);
+    }
+
+    private double getGrade(double distance){
+        for(int i = 0; i < distances.size() - 1; i++){
+            if(distance < distances.get(i + 1)){
+                return grades.get(i);
+            }
+        }
+        return 0;
+    }
+
+    private double getBearing(double distance){
+        for(int i = 0; i < distances.size() - 1; i++){
+            if(distance < distances.get(i + 1)){
+                return angles.get(i);
+            }
+        }
         return 0;
     }
 
@@ -114,7 +149,8 @@ class Main {
                         double elev_change = elev-prev_elev;
                         double d = 2*constants.earth_radius*Math.asin(Math.sqrt(Math.pow(Math.sin((lat-prev_lat)/2), 2) + Math.cos(prev_lat)*Math.cos(lat)*Math.pow(Math.sin((lon - prev_lon)/2), 2)));
                         double dt = d/Math.cos(Math.atan(elev_change/d));
-                        distances.add(dt);
+                        distances.add(dt + distances.get(i));
+                        i++;
                         double bearing = (Math.atan2(Math.sin(lon - prev_lon)*Math.cos(lat), Math.cos(prev_lat)*Math.sin(lat)-Math.sin(prev_lat)*Math.cos(lat)*Math.cos(lon - prev_lon))*180/Math.PI + 360) % 360;
                         angles.add(bearing);
                         grades.add(elev_change/d);
@@ -193,7 +229,7 @@ class Main {
     }
 
     private double magnitudeWindvsBike(double v_wg, double v_bg, double wind_direction, double rider_direction){
-        return v_wg*Math.cos(wind_direction-rider_direction)+v_bg;
+        return v_wg*Math.cos((wind_direction-rider_direction)*Math.PI/180)+v_bg;
     }
 
 }
