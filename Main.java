@@ -9,18 +9,14 @@ class Main {
     protected class Constants {
         final double gravity = 9.81;
         final double earth_radius = 6378137;
-        final double kinematic_velocity_of_air = 0.000015672;
-        final double cross_section_spoked_wheel = 0.0226852;
-        final double cross_section_disc_wheel = 0.0226852;
-        final double drag_coeff_spoked_wheel = 0;
-        final double drag_coeff_disc_wheel = 0;
-        final double drag_coeff_rider_bike = 0;
-        final double mass_spoked_wheel = 0;
-        final double mass_disk_wheel = 0;
+        final double kinematic_viscosity_of_air = 0.000015672;
+        final double drag_coeff_rider_bike = 0.5;
+        final double mass_spoked_wheel = 0.7843;
+        final double mass_disk_wheel = 1.018;
         final double radius = 0.3302;
         final double coeff_roll_rest = 0.004;
-        final double moi_disk = 0;
-        final double moi_spoked = 0;
+        final double moi_disk = 0.10;
+        final double moi_spoked = 0.0528;
     }
 
     protected class Constant_Per_Course {
@@ -34,10 +30,6 @@ class Main {
         int power;
         boolean rear_disc;
         boolean front_disc;
-        double cross_section_rear_wheel;
-        double cross_section_front_wheel;
-        double drag_coeff_rear_wheel;
-        double drag_coeff_front_wheel;
         double moi_front;
         double moi_rear;
     }
@@ -51,7 +43,7 @@ class Main {
     Constant_Per_Course const_per_course = new Constant_Per_Course();
     Var_Per_Instance[] situations;
 
-    double step_length;
+    double step_length = 10;
     double number_steps;
 
     ArrayList<Double> distances;
@@ -76,13 +68,13 @@ class Main {
         String fname = scan.next();
         runner.parseCourse(fname);
         scan.close();
-        double time_both_spoked = runner.findTimeForCourse(0, 0, 0);
+        double time_both_spoked = runner.findTimeForCourse(0, 10, 0);
         runner.const_per_course.rear_disc = true;
         runner.init();
-        double time_rear_disk = runner.findTimeForCourse(0, 0, 0);
+        double time_rear_disk = runner.findTimeForCourse(0, 10, 0);
         runner.const_per_course.front_disc = true;
         runner.init();
-        double time_both_disk = runner.findTimeForCourse(0, 0, 0);
+        double time_both_disk = runner.findTimeForCourse(0, 10, 0);
 
         System.out.println("Time 2 spoked: " + time_both_spoked + "s");
         System.out.println("Time rear disk: " + time_rear_disk + "s");
@@ -101,43 +93,52 @@ class Main {
     public void init() {
         const_per_course.power = 440;
         if (const_per_course.rear_disc) {
-            const_per_course.cross_section_rear_wheel = constants.cross_section_disc_wheel;
-            const_per_course.drag_coeff_rear_wheel = constants.drag_coeff_disc_wheel;
             const_per_course.mass_rear_wheel = constants.mass_disk_wheel;
             const_per_course.moi_rear = constants.moi_disk;
         } else {
-            const_per_course.cross_section_rear_wheel = constants.cross_section_spoked_wheel;
-            const_per_course.drag_coeff_rear_wheel = constants.drag_coeff_spoked_wheel;
             const_per_course.mass_rear_wheel = constants.mass_spoked_wheel;
             const_per_course.moi_rear = constants.moi_spoked;
         }
 
         if (const_per_course.front_disc) {
-            const_per_course.cross_section_front_wheel = constants.cross_section_disc_wheel;
-            const_per_course.drag_coeff_front_wheel = constants.drag_coeff_disc_wheel;
             const_per_course.mass_front_wheel = constants.mass_disk_wheel;
             const_per_course.moi_front = constants.moi_disk;
         } else {
-            const_per_course.cross_section_front_wheel = constants.cross_section_spoked_wheel;
-            const_per_course.drag_coeff_front_wheel = constants.drag_coeff_spoked_wheel;
             const_per_course.mass_front_wheel = constants.mass_spoked_wheel;
             const_per_course.moi_front = constants.moi_spoked;
         }
+    }
+
+    private double dragCoefficientDisk(double angle){
+        double angle_deg = angle*180/Math.PI;
+        return 3.23333333333333*Math.pow(10, -6)*Math.pow(angle_deg, 3) - 0.0001135*Math.pow(angle_deg, 2) + 0.00011166666666666*angle_deg + 0.014;
+    }
+
+    private double dragCoefficientSpoked(double angle){
+        double angle_deg = angle*180/Math.PI;
+        return 8.66666669999999*Math.pow(10, -7)*Math.pow(angle_deg, 3) - 0.00004100000015*Math.pow(angle_deg, 2) + 0.000630000001499999*angle_deg + 0.0142;
     }
 
     private double findTimeForCourse(double start_dist, double start_speed, double num_steps){
         if(pastCourse(start_dist)){
             return num_steps*step_length;
         }
+        System.out.println("Speed: " + start_speed);
+        System.out.println("Distance: " + start_dist);
         Var_Per_Instance situation = new Var_Per_Instance();
         situation.bike_direction = getBearing(start_dist);
         situation.grade = getGrade(start_dist);
         double speed = findSpeedForInstance(situation, start_speed);
         double dist = start_dist + speed*step_length;
+        System.out.println("Speed after: " + speed);
+        System.out.println("Distance after: " + dist);
         return findTimeForCourse(dist, speed, num_steps + 1);
+        // return 0;
     }
 
     private boolean pastCourse(double distance){
+        // System.out.println(distance);
+        // System.out.println(distances.get(distances.size() - 1));
         return distance > distances.get(distances.size() - 1);
     }
 
@@ -170,11 +171,11 @@ class Main {
             distances.add((Double) 0.0);
             while(reader.hasNextLine()){
                 String ln = reader.nextLine();
-                if(ln.contains("trkpt")){
+                if(ln.contains("<trkpt")){
                     double lat = Double.parseDouble(ln.split("\"")[1]);
                     double lon = Double.parseDouble(ln.split("\"")[3]);
                     String el = reader.nextLine();
-                    double elev = Double.parseDouble(el.substring(el.indexOf(">"), el.lastIndexOf("<")));
+                    double elev = Double.parseDouble(el.substring(el.indexOf(">") + 1, el.lastIndexOf("<")));
                     if(!first){
                         double elev_change = elev-prev_elev;
                         double d = 2*constants.earth_radius*Math.asin(Math.sqrt(Math.pow(Math.sin((lat-prev_lat)/2), 2) + 
@@ -200,9 +201,11 @@ class Main {
 
     private double findSpeedForInstance(Var_Per_Instance instance, double start_speed) {
         double w1 = acceleration(instance, start_speed);
+        // System.out.println("Acc1: " + w1);
         double w2 = acceleration(instance, start_speed+w1*step_length/2);
         double w3 = acceleration(instance, start_speed+w2*step_length/2);
         double w4 = acceleration(instance, start_speed+w3*step_length);
+        // System.out.println(start_speed);
         return start_speed + step_length*(w1+w2+w3+w4)/6;
     }
 
@@ -213,7 +216,7 @@ class Main {
                                                 instance.bike_direction);
         double F_g = gravitationalResistance(const_per_course.mass_bike_and_rider, constants.gravity, instance.grade);
         double rotational_velocity = start_speed / constants.radius;
-        double F_wa = frictionInAirOnWheels(const_per_course.air_density, rotational_velocity, F_g, start_speed)/constants.radius;
+        double F_wa = frictionInAirOnWheels(const_per_course.air_density, rotational_velocity, constants.kinematic_viscosity_of_air, constants.radius)/constants.radius;
         double F_drb = dragOnBikeExceptWheels(const_per_course.air_density, 
                                             constants.drag_coeff_rider_bike, 
                                             const_per_course.cross_section_rider_and_bike, 
@@ -221,9 +224,15 @@ class Main {
                                             const_per_course.wind_speed, 
                                             start_speed, 
                                             const_per_course.wind_direction);
-        double F_df = dragOnFrontWheel(constants.drag_coeff_spoked_wheel, constants.cross_section_spoked_wheel, const_per_course.air_density, wind_v_bike);
-        double F_dr = dragOnBackWheel(const_per_course.drag_coeff_rear_wheel, const_per_course.cross_section_rear_wheel, const_per_course.air_density, wind_v_bike);
+        double angle = const_per_course.wind_direction-instance.bike_direction;
+        double F_df = dragOnFrontWheel(const_per_course.front_disc? dragCoefficientDisk(angle) : dragCoefficientSpoked(angle), const_per_course.air_density, wind_v_bike);
+        double F_dr = dragOnBackWheel(const_per_course.rear_disc? dragCoefficientDisk(angle) : dragCoefficientSpoked(angle), const_per_course.air_density, wind_v_bike);
         double F_rr = rollingResistance(constants.coeff_roll_rest, const_per_course.mass_front_wheel + const_per_course.mass_rear_wheel + const_per_course.mass_bike_and_rider, constants.gravity, instance.grade, start_speed);
+        // System.out.println("Forces: " + F_g + " " + rotational_velocity + " " + F_wa + " " + F_drb + " " + angle + " " + F_df + " " + F_dr + " " + F_rr);
+        // System.out.println("pwr/speed: " + const_per_course.power/start_speed);
+        // System.out.println("moi expression: " + (const_per_course.moi_front + const_per_course.moi_rear)/(constants.radius*constants.radius));
+        // System.out.println("sum forces: " + (const_per_course.power/start_speed - F_g - F_wa - F_drb - F_df - F_dr - F_rr));
+        // System.out.println("denominator: " + (const_per_course.mass_front_wheel + const_per_course.mass_rear_wheel + const_per_course.mass_bike_and_rider + (const_per_course.moi_front + const_per_course.moi_rear)/(constants.radius*constants.radius)));
         return (const_per_course.power/start_speed - F_g - F_wa - F_drb - F_df - F_dr - F_rr)/(const_per_course.mass_front_wheel + const_per_course.mass_rear_wheel + const_per_course.mass_bike_and_rider + (const_per_course.moi_front + const_per_course.moi_rear)/(constants.radius*constants.radius));
     }
 
@@ -235,12 +244,12 @@ class Main {
                                 (v_wg * Math.sin(gamma)) / (v_bg - v_wg * Math.cos(gamma))));
     }
 
-    private double dragOnFrontWheel(double c_f, double A_f, double rho, double v_wb) {
-        return 0.5 * rho * c_f * A_f * v_wb * v_wb;
+    private double dragOnFrontWheel(double c_f, double rho, double v_wb) {
+        return 0.5 * rho * c_f * v_wb * v_wb;
     }
 
-    private double dragOnBackWheel(double c_r, double A_r, double rho, double v_wb) {
-        return 0.5 * 0.75 * rho * c_r * A_r * v_wb;
+    private double dragOnBackWheel(double c_r, double rho, double v_wb) {
+        return 0.5 * 0.75 * rho * c_r * v_wb;
     }
 
     private double gravitationalResistance(double m, double g, double psi) {
@@ -256,7 +265,7 @@ class Main {
     }
 
     private double frictionInAirOnWheels(double rho, double omega, double mu, double r) {
-        return 0.616 * Math.PI * Math.pow(rho, 1.5) * Math.pow(mu, 0.5) * Math.pow(r, 4);
+        return 0.616 * Math.PI * rho * Math.pow(omega, 1.5) * Math.pow(Math.abs(mu), 0.5) * Math.pow(r, 4);
     }
 
     private double magnitudeWindvsBike(double v_wg, double v_bg, double wind_direction, double rider_direction){
