@@ -69,13 +69,13 @@ class Main {
         String fname = scan.next();
         runner.parseCourse(fname);
         scan.close();
-        double time_both_spoked = runner.findTimeForCourse(0, 10, 0);
+        double time_both_spoked = runner.findTimeForCourse(0, 0, 10, 0);
         runner.const_per_course.rear_disc = true;
         runner.init();
-        double time_rear_disk = runner.findTimeForCourse(0, 10, 0);
+        double time_rear_disk = runner.findTimeForCourse(0, 0, 10, 0);
         runner.const_per_course.front_disc = true;
         runner.init();
-        double time_both_disk = runner.findTimeForCourse(0, 10, 0);
+        double time_both_disk = runner.findTimeForCourse(0, 0, 10, 0);
 
         System.out.println("Time 2 spoked: " + time_both_spoked + "s");
         System.out.println("Time rear disk: " + time_rear_disk + "s");
@@ -122,9 +122,9 @@ class Main {
                 + 0.000630000001499999 * angle_deg + 0.0142;
     }
 
-    private double findTimeForCourse(double start_dist, double start_speed, double num_steps) {
+    private double findTimeForCourse(double start_dist, double prev_dist, double start_speed, double num_steps) {
         if (pastCourse(start_dist)) {
-            return num_steps * step_length;
+            return num_steps * step_length + (distances.get(distances.size()-1) - (prev_dist + start_speed*step_length))/start_speed;
         }
         System.out.println("Speed: " + start_speed);
         System.out.println("Distance: " + start_dist);
@@ -136,7 +136,7 @@ class Main {
         double dist = start_dist + speed * step_length;
         System.out.println("Speed after: " + speed);
         System.out.println("Distance after: " + dist);
-        return findTimeForCourse(dist, speed, num_steps + 1);
+        return findTimeForCourse(dist, start_dist, speed, num_steps + 1);
         // return 0;
     }
 
