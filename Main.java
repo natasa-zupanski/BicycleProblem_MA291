@@ -236,7 +236,7 @@ class Main {
                 + const_per_course.mass_rear_wheel + const_per_course.mass_bike_and_rider, constants.gravity,
                 instance.grade, start_speed);
 
-        double total_force = F_g + F_wa + F_drb + F_df + F_rr;
+        double total_force = F_g + F_wa + F_drb + F_df + F_dr + F_rr;
         double expected_power = total_force * start_speed;
 
         if (Math.abs(expected_power - const_per_course.power) < 0.01) {
