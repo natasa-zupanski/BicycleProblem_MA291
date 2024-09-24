@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd" creator="StravaGPX" version="1.1" xmlns="http://www.topografix.com/GPX/1/1">
+ <trk>
+  <name>0 Percent Grade</name>
+  <type>cycling</type>
+  <trkseg>
+   <trkpt lat="0" lon="0">
+    <ele>0</ele>
+   </trkpt>
+   <trkpt lat="0.008994" lon="0">
+    <ele>0</ele>
+   </trkpt>
+  </trkseg>
+ </trk>
+</gpx>

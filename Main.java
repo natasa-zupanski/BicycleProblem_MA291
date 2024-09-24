@@ -91,7 +91,7 @@ class Main {
     }
 
     public void init() {
-        const_per_course.power = 440;
+        const_per_course.power = 340;
         if (const_per_course.rear_disc) {
             const_per_course.mass_rear_wheel = constants.mass_disk_wheel;
             const_per_course.moi_rear = constants.moi_disk;
@@ -178,12 +178,12 @@ class Main {
                     double elev = Double.parseDouble(el.substring(el.indexOf(">") + 1, el.lastIndexOf("<")));
                     if(!first){
                         double elev_change = elev-prev_elev;
-                        double d = 2*constants.earth_radius*Math.asin(Math.sqrt(Math.pow(Math.sin((lat-prev_lat)/2), 2) + 
-                                                                                         Math.cos(prev_lat)*Math.cos(lat)*Math.pow(Math.sin((lon - prev_lon)/2), 2)));
+                        double d = 2*constants.earth_radius*Math.asin(Math.sqrt(Math.pow(Math.sin(Math.PI/180*(lat-prev_lat)/2), 2) + 
+                                                                                         Math.cos(Math.PI/180*prev_lat)*Math.cos(Math.PI/180*lat)*Math.pow(Math.sin(Math.PI/180*(lon - prev_lon)/2), 2)));
                         double dt = d/Math.cos(Math.atan(elev_change/d));
                         distances.add(dt + distances.get(i));
                         i++;
-                        double bearing = Math.PI/180*(Math.atan2(Math.sin(lon - prev_lon)*Math.cos(lat), Math.cos(prev_lat)*Math.sin(lat)-Math.sin(prev_lat)*Math.cos(lat)*Math.cos(lon - prev_lon))*180/Math.PI + 360) % 360;
+                        double bearing = Math.PI/180*((Math.atan2(Math.sin(Math.PI/180*(lon - prev_lon))*Math.cos(Math.PI/180*lat), Math.cos(Math.PI/180*prev_lat)*Math.sin(Math.PI/180*lat)-Math.sin(Math.PI/180*prev_lat)*Math.cos(Math.PI/180*lat)*Math.cos(Math.PI/180*(lon - prev_lon)))*180/Math.PI + 360) % 360);
                         angles.add(bearing);
                         grades.add(elev_change/d);
                     }
@@ -228,11 +228,6 @@ class Main {
         double F_df = dragOnFrontWheel(const_per_course.front_disc? dragCoefficientDisk(angle) : dragCoefficientSpoked(angle), const_per_course.air_density, wind_v_bike);
         double F_dr = dragOnBackWheel(const_per_course.rear_disc? dragCoefficientDisk(angle) : dragCoefficientSpoked(angle), const_per_course.air_density, wind_v_bike);
         double F_rr = rollingResistance(constants.coeff_roll_rest, const_per_course.mass_front_wheel + const_per_course.mass_rear_wheel + const_per_course.mass_bike_and_rider, constants.gravity, instance.grade, start_speed);
-        // System.out.println("Forces: " + F_g + " " + rotational_velocity + " " + F_wa + " " + F_drb + " " + angle + " " + F_df + " " + F_dr + " " + F_rr);
-        // System.out.println("pwr/speed: " + const_per_course.power/start_speed);
-        // System.out.println("moi expression: " + (const_per_course.moi_front + const_per_course.moi_rear)/(constants.radius*constants.radius));
-        // System.out.println("sum forces: " + (const_per_course.power/start_speed - F_g - F_wa - F_drb - F_df - F_dr - F_rr));
-        // System.out.println("denominator: " + (const_per_course.mass_front_wheel + const_per_course.mass_rear_wheel + const_per_course.mass_bike_and_rider + (const_per_course.moi_front + const_per_course.moi_rear)/(constants.radius*constants.radius)));
         return (const_per_course.power/start_speed - F_g - F_wa - F_drb - F_df - F_dr - F_rr)/(const_per_course.mass_front_wheel + const_per_course.mass_rear_wheel + const_per_course.mass_bike_and_rider + (const_per_course.moi_front + const_per_course.moi_rear)/(constants.radius*constants.radius));
     }
 
