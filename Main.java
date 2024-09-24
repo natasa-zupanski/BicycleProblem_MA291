@@ -131,7 +131,8 @@ class Main {
         Var_Per_Instance situation = new Var_Per_Instance();
         situation.bike_direction = getBearing(start_dist);
         situation.grade = getGrade(start_dist);
-        double speed = findSpeedForInstance(situation, start_speed);
+        // double speed = findSpeedForInstance(situation, start_speed);
+        double speed = findSpeedForInstanceRecursive(situation, start_speed);
         double dist = start_dist + speed * step_length;
         System.out.println("Speed after: " + speed);
         System.out.println("Distance after: " + dist);
@@ -251,12 +252,12 @@ class Main {
 
         int next_over = expected_power > const_per_course.power ? 1 : 0;
 
+        speed_step = speed_step * (over == next_over ? 1 : 0.5);
         double speed_change = speed_step * (expected_power > const_per_course.power ? -1 : 1);
-        speed_change = speed_change * (over == next_over ? 1 : 0.5);
         over = next_over;
         double next_speed = start_speed + speed_change;
 
-        return findSpeedForInstance(instance, next_speed);
+        return findSpeedForInstanceRecursive(instance, next_speed);
     }
 
     private double findSpeedForInstance(Var_Per_Instance instance, double start_speed) {
