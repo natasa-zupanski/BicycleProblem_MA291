@@ -251,14 +251,16 @@ class Main {
                 + const_per_course.mass_rear_wheel + const_per_course.mass_bike_and_rider, constants.gravity,
                 instance.grade, start_speed);
 
-        double F_acc = (start_speed - prev_speed) / step_length *
-                (const_per_course.mass_front_wheel
-                        + const_per_course.mass_rear_wheel
-                        + const_per_course.mass_bike_and_rider
-                        + (const_per_course.moi_front + const_per_course.moi_rear)
-                                / (constants.radius * constants.radius));
+        /*
+         * double F_acc = (start_speed - prev_speed) / step_length *
+         * (const_per_course.mass_front_wheel
+         * + const_per_course.mass_rear_wheel
+         * + const_per_course.mass_bike_and_rider
+         * + (const_per_course.moi_front + const_per_course.moi_rear)
+         * / (constants.radius * constants.radius));
+         */
 
-        double total_force = F_g + F_wa + F_drb + F_df + F_dr + F_rr + F_acc;
+        double total_force = F_g + F_wa + F_drb + F_df + F_dr + F_rr;// + F_acc;
         double expected_power = total_force * start_speed;
 
         if (Math.abs(expected_power - const_per_course.power) < 0.01) {
@@ -352,7 +354,7 @@ class Main {
     }
 
     private double frictionInAirOnWheels(double rho, double omega, double mu, double r) {
-        return 0.616 * Math.PI * rho * Math.pow(omega, 1.5) * Math.pow(Math.abs(mu), 0.5) * Math.pow(r, 4);
+        return 0.616 * Math.PI * rho * Math.pow(omega, 1.5) * Math.pow(Math.abs(mu), 0.5) * Math.pow(r, 3);
     }
 
     private double magnitudeWindvsBike(double v_wg, double v_bg, double wind_direction, double rider_direction) {
