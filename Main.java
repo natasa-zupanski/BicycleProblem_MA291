@@ -140,16 +140,16 @@ class Main {
             num_steps++;
         }
 
-        return num_steps * step_length + (distances.get(distances.size()-1) - (prev_dist + speed*step_length))/start_speed;
+        return num_steps * step_length
+                + (distances.get(distances.size() - 1) - (prev_dist + speed * step_length)) / start_speed;
         // System.out.println("Speed: " + start_speed);
         // System.out.println("Distance: " + start_dist);
-        
-        
+
         // double speed = findSpeedForInstance(situation, start_speed);
-        
+
         // System.out.println("Speed after: " + speed);
         // System.out.println("Distance after: " + dist);
-        //return findTimeForCourse(dist, start_dist, speed, speed, num_steps + 1);
+        // return findTimeForCourse(dist, start_dist, speed, speed, num_steps + 1);
         // return 0;
     }
 
@@ -193,22 +193,22 @@ class Main {
                     double lon = Double.parseDouble(ln.split("\"")[3]);
                     String el = reader.nextLine();
                     double elev = Double.parseDouble(el.substring(el.indexOf(">") + 1, el.lastIndexOf("<")));
-                    if(!first){
-                        double elev_change = elev-prev_elev;
-                        double d = 2*constants.earth_radius *
-                                    Math.asin(Math.sqrt(Math.pow(Math.sin(Math.PI/180*(lat-prev_lat)/2), 2) + 
-                                                        Math.cos(Math.PI/180*prev_lat)*
-                                                                 Math.cos(Math.PI/180*lat)*
-                                                                 Math.pow(Math.sin(Math.PI/180*(lon - prev_lon)/2), 2)));
-                        double dt = d/Math.cos(Math.atan(elev_change/d));
+                    if (!first) {
+                        double elev_change = elev - prev_elev;
+                        double d = 2 * constants.earth_radius *
+                                Math.asin(Math.sqrt(Math.pow(Math.sin(Math.PI / 180 * (lat - prev_lat) / 2), 2) +
+                                        Math.cos(Math.PI / 180 * prev_lat) *
+                                                Math.cos(Math.PI / 180 * lat) *
+                                                Math.pow(Math.sin(Math.PI / 180 * (lon - prev_lon) / 2), 2)));
+                        double dt = d / Math.cos(Math.atan(elev_change / d));
                         distances.add(dt + distances.get(i));
                         i++;
-                        double bearing = Math.PI/180*
-                                        ((Math.atan2(Math.sin(Math.PI/180*(lon - prev_lon))*Math.cos(Math.PI/180*lat), 
-                                                    Math.cos(Math.PI/180*prev_lat)*Math.sin(Math.PI/180*lat)-
-                                                        Math.sin(Math.PI/180*prev_lat)*Math.cos(Math.PI/180*lat)*
-                                                        Math.cos(Math.PI/180*(lon - prev_lon)))
-                                                        *180/Math.PI + 360) % 360);
+                        double bearing = Math.PI / 180 *
+                                ((Math.atan2(Math.sin(Math.PI / 180 * (lon - prev_lon)) * Math.cos(Math.PI / 180 * lat),
+                                        Math.cos(Math.PI / 180 * prev_lat) * Math.sin(Math.PI / 180 * lat) -
+                                                Math.sin(Math.PI / 180 * prev_lat) * Math.cos(Math.PI / 180 * lat) *
+                                                        Math.cos(Math.PI / 180 * (lon - prev_lon)))
+                                        * 180 / Math.PI + 360) % 360);
                         angles.add(bearing);
                         grades.add(elev_change / d);
                     }
@@ -250,15 +250,15 @@ class Main {
         double F_rr = rollingResistance(constants.coeff_roll_rest, const_per_course.mass_front_wheel
                 + const_per_course.mass_rear_wheel + const_per_course.mass_bike_and_rider, constants.gravity,
                 instance.grade, start_speed);
-        
-        double F_acc = (start_speed-prev_speed)/step_length*
-                        (const_per_course.mass_front_wheel 
-                                + const_per_course.mass_rear_wheel
-                                + const_per_course.mass_bike_and_rider
-                                + (const_per_course.moi_front + const_per_course.moi_rear)
-                                        / (constants.radius * constants.radius));
 
-        double total_force = F_g + F_wa + F_drb + F_df + F_dr + F_rr +F_acc;
+        double F_acc = (start_speed - prev_speed) / step_length *
+                (const_per_course.mass_front_wheel
+                        + const_per_course.mass_rear_wheel
+                        + const_per_course.mass_bike_and_rider
+                        + (const_per_course.moi_front + const_per_course.moi_rear)
+                                / (constants.radius * constants.radius));
+
+        double total_force = F_g + F_wa + F_drb + F_df + F_dr + F_rr + F_acc;
         double expected_power = total_force * start_speed;
 
         if (Math.abs(expected_power - const_per_course.power) < 0.01) {
@@ -332,11 +332,11 @@ class Main {
     }
 
     private double dragOnFrontWheel(double c_f, double rho, double v_wb) {
-        return 0.5 * rho * c_f * v_wb * v_wb;
+        return 0.5 * rho * c_f * Math.pow(v_wb, 2);
     }
 
     private double dragOnBackWheel(double c_r, double rho, double v_wb) {
-        return 0.5 * 0.75 * rho * c_r * v_wb;
+        return 0.5 * 0.75 * rho * c_r * Math.pow(v_wb, 22);
     }
 
     private double gravitationalResistance(double m, double g, double psi) {
