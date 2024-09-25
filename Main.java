@@ -336,7 +336,7 @@ class Main {
     }
 
     private double dragOnBackWheel(double c_r, double rho, double v_wb) {
-        return 0.5 * 0.75 * rho * c_r * Math.pow(v_wb, 22);
+        return 0.5 * 0.75 * rho * c_r * Math.pow(v_wb, 2);
     }
 
     private double gravitationalResistance(double m, double g, double psi) {
