@@ -69,13 +69,13 @@ class Main {
         String fname = scan.next();
         runner.parseCourse(fname);
         scan.close();
-        double time_both_spoked = runner.findTimeForCourse(0, 0, 10, 0);
+        double time_both_spoked = runner.findTimeForCourse(0, 0, 10, 0, 0);
         runner.const_per_course.rear_disc = true;
         runner.init();
-        double time_rear_disk = runner.findTimeForCourse(0, 0, 10, 0);
+        double time_rear_disk = runner.findTimeForCourse(0, 0, 10, 0, 0);
         runner.const_per_course.front_disc = true;
         runner.init();
-        double time_both_disk = runner.findTimeForCourse(0, 0, 10, 0);
+        double time_both_disk = runner.findTimeForCourse(0, 0, 10, 0, 0);
 
         System.out.println("Time 2 spoked: " + time_both_spoked + "s");
         System.out.println("Time rear disk: " + time_rear_disk + "s");
@@ -111,32 +111,34 @@ class Main {
     }
 
     private double dragCoefficientDisk(double angle) {
-        double angle_deg = angle * 180 / Math.PI;
+        double angle_deg = Math.abs(angle) * 180 / Math.PI;
         return 3.23333333333333 * Math.pow(10, -6) * Math.pow(angle_deg, 3) - 0.0001135 * Math.pow(angle_deg, 2)
                 + 0.00011166666666666 * angle_deg + 0.014;
     }
 
     private double dragCoefficientSpoked(double angle) {
-        double angle_deg = angle * 180 / Math.PI;
+        double angle_deg = Math.abs(angle) * 180 / Math.PI;
         return 8.66666669999999 * Math.pow(10, -7) * Math.pow(angle_deg, 3) - 0.00004100000015 * Math.pow(angle_deg, 2)
                 + 0.000630000001499999 * angle_deg + 0.0142;
     }
 
-    private double findTimeForCourse(double start_dist, double prev_dist, double start_speed, double num_steps) {
+    private double findTimeForCourse(double start_dist, double prev_dist, double start_speed, double prev_speed, double num_steps) {
         if (pastCourse(start_dist)) {
             return num_steps * step_length + (distances.get(distances.size()-1) - (prev_dist + start_speed*step_length))/start_speed;
         }
-        System.out.println("Speed: " + start_speed);
-        System.out.println("Distance: " + start_dist);
+        // System.out.println("Speed: " + start_speed);
+        // System.out.println("Distance: " + start_dist);
         Var_Per_Instance situation = new Var_Per_Instance();
         situation.bike_direction = getBearing(start_dist);
         situation.grade = getGrade(start_dist);
         // double speed = findSpeedForInstance(situation, start_speed);
-        double speed = findSpeedForInstanceRecursive(situation, start_speed);
+        over = null;
+        speed_step = 5;
+        double speed = findSpeedForInstanceRecursive(situation, start_speed, prev_speed);
         double dist = start_dist + speed * step_length;
-        System.out.println("Speed after: " + speed);
-        System.out.println("Distance after: " + dist);
-        return findTimeForCourse(dist, start_dist, speed, num_steps + 1);
+        // System.out.println("Speed after: " + speed);
+        // System.out.println("Distance after: " + dist);
+        return findTimeForCourse(dist, start_dist, speed, speed, num_steps + 1);
         // return 0;
     }
 
@@ -211,7 +213,7 @@ class Main {
         }
     }
 
-    private double findSpeedForInstanceRecursive(Var_Per_Instance instance, double start_speed) {
+    private double findSpeedForInstanceRecursive(Var_Per_Instance instance, double start_speed, double prev_speed) {
         double wind_v_bike = magnitudeWindvsBike(const_per_course.wind_speed,
                 start_speed,
                 const_per_course.wind_direction,
@@ -237,8 +239,15 @@ class Main {
         double F_rr = rollingResistance(constants.coeff_roll_rest, const_per_course.mass_front_wheel
                 + const_per_course.mass_rear_wheel + const_per_course.mass_bike_and_rider, constants.gravity,
                 instance.grade, start_speed);
+        
+        double F_acc = (start_speed-prev_speed)/step_length*
+                        (const_per_course.mass_front_wheel 
+                                + const_per_course.mass_rear_wheel
+                                + const_per_course.mass_bike_and_rider
+                                + (const_per_course.moi_front + const_per_course.moi_rear)
+                                        / (constants.radius * constants.radius));
 
-        double total_force = F_g + F_wa + F_drb + F_df + F_dr + F_rr;
+        double total_force = F_g + F_wa + F_drb + F_df + F_dr + F_rr +F_acc;
         double expected_power = total_force * start_speed;
 
         if (Math.abs(expected_power - const_per_course.power) < 0.01) {
@@ -257,7 +266,7 @@ class Main {
         over = next_over;
         double next_speed = start_speed + speed_change;
 
-        return findSpeedForInstanceRecursive(instance, next_speed);
+        return findSpeedForInstanceRecursive(instance, next_speed, prev_speed);
     }
 
     private double findSpeedForInstance(Var_Per_Instance instance, double start_speed) {
@@ -320,7 +329,7 @@ class Main {
     }
 
     private double gravitationalResistance(double m, double g, double psi) {
-        return m * g * psi;
+        return m * g * Math.sin(Math.atan(psi));
     }
 
     private double rollingResistance(double c_rr, double m, double g, double psi, double v_bg) {
